@@ -21,7 +21,7 @@
 	#include <Windows.h>
 	#include <bcrypt.h>
 #else
-    #include <endian.h>
+    #include "endian.h"
 #endif
 
 #include "picnic_impl.h"

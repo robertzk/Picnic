@@ -3,13 +3,14 @@ CC=gcc
 WARNING_FLAGS=-Wall -Wextra -Wpedantic -Werror
 CFLAGS= -O2 -march=native $(WARNING_FLAGS) -std=gnu99 -D__LINUX__ -D__X64__ -I./sha3
 CFLAGS_DEBUG= -g -march=native $(WARNING_FLAGS) -std=gnu99 -fsanitize=address -D__LINUX__ -D__X64__ -I./sha3
-SHA3LIB=libshake.a
+SHA3LIB=libshake.dylib
 SHA3_PATH=sha3
-LDFLAGS= $(SHA3_PATH)/$(SHA3LIB) 
+LDFLAGS=$(SHA3LIB) 
+DYLIBFLAGS=-dynamiclib -undefined suppress -flat_namespace
 
 SOURCES= picnic_impl.c picnic.c lowmc_constants.c
 PICNIC_OBJECTS= picnic_impl.o picnic.o lowmc_constants.o hash.o picnic_types.o
-PICNIC_LIB= libpicnic.a
+PICNIC_LIB= libpicnic.dylib
 EXECUTABLE_EXAMPLE=example
 EXECUTABLE_TESTVECTORS=create_test_vectors
 EXECUTABLE_UNITTEST=unit_test
@@ -41,7 +42,9 @@ $(EXECUTABLE_BENCHMARK): $(PICNIC_LIB)
 	    $(CC) -c $(CFLAGS) $< -o $@
 
 $(PICNIC_LIB): $(PICNIC_OBJECTS)
-	ar rcs $@ $^
+	# ar rcs $@ $^
+	mv $(SHA3_PATH)/$(SHA3LIB) .
+	$(CC) $(DYLIBFLAGS) $(PICNIC_OBJECTS) -o $@
 
 
 clean:
@@ -52,5 +55,6 @@ clean:
 	    rm $(EXECUTABLE_UNITTEST) 2>/dev/null || true
 	    rm $(EXECUTABLE_TESTVECTORS) 2>/dev/null || true
 	    rm $(EXECUTABLE_BENCHMARK) 2>/dev/null || true
+			rm $(SHA3LIB) 2>/dev/null || true
 		rm $(PICNIC_LIB) 2>/dev/null || true
 		$(MAKE) -C $(SHA3_PATH) clean
